@@ -23,13 +23,20 @@ resource "tfe_workspace" "my_workspace" {
   project_id   = data.tfe_project.tfc_project.id
 }
 
+resource "tfe_variable_set" "aws_oidc" {
+  name         = "AWS Authentication"
+  description  = "Authenticate to AWS"
+  global       = true
+  organization = var.tfc_organization_name
+}
+
 # The following variables must be set to allow runs
 # to authenticate to AWS.
 #
 # https://registry.terraform.io/providers/hashicorp/tfe/latest/docs/resources/variable
 resource "tfe_variable" "enable_aws_provider_auth" {
-  workspace_id = tfe_workspace.my_workspace.id
-
+  # workspace_id = tfe_workspace.my_workspace.id
+  variable_set_id = tfe_variable_set.aws_oidc.id
   key      = "TFC_AWS_PROVIDER_AUTH"
   value    = "true"
   category = "env"
@@ -38,8 +45,8 @@ resource "tfe_variable" "enable_aws_provider_auth" {
 }
 
 resource "tfe_variable" "tfc_aws_role_arn" {
-  workspace_id = tfe_workspace.my_workspace.id
-
+  # workspace_id = tfe_workspace.my_workspace.id
+  variable_set_id = tfe_variable_set.aws_oidc.id
   key      = "TFC_AWS_RUN_ROLE_ARN"
   value    = aws_iam_role.tfc_role.arn
   category = "env"
